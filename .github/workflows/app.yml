@@ -1,0 +1,53 @@
+name: taskassignment
+
+on: [push]
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21' # Or your required Go version
+
+      - name: Initialize Go module (if not already initialized)
+        run: go mod init github.com/HelloWorld/goProductAPI
+
+      - name: Tidy Go modules
+        run: go mod tidy
+
+      - name: Download gorilla/mux (ensure dependency is in go.mod)
+        run: go get github.com/gorilla/mux
+
+      - name: Run Go application
+        run: go run main.go
+
+global:
+  scrape_interval: 15s
+  
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+      - name: Create Docker volumes and network
+        run: |
+          docker network create network || true
+          docker volume create prometheus-data || true
+          docker volume create grafana-data || true
+
+      - name: Pull monitoring images
+        run: |
+          docker pull prom/prometheus
+          docker pull grafana/grafana
+
+      - name: Run Prometheus container (background)
+        run: docker container run --name prometheus -v prometheus.yml -v prometheus-data:/prometheus -p 9090:9090  prom/prometheus
+
+      - name: Run Grafana container (background)
+        run: docker container run -v grafana-data -p 3000:3000 --name grafana --network network grafana/grafana
