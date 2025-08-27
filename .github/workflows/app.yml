@@ -24,8 +24,11 @@ jobs:
       - name: Download gorilla/mux (ensure dependency is in go.mod)
         run: go get github.com/gorilla/mux
 
-      - name: Run Go application
-        run: go run main.go
+      - name: Build Go application
+        run: go build -o product-api main.go
+
+      - name: Run Go tests
+        run: go test ./... -v
 
       - name: Create Docker volumes and network
         run: |
