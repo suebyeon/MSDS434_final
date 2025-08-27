@@ -41,11 +41,8 @@ jobs:
           docker pull prom/prometheus
           docker pull grafana/grafana
 
-      - name: Copy prometheus.yml
-        run: cp ./prometheus.yml .
-
       - name: Run Prometheus container (background)
-        run: docker container run --name prometheus -v prometheus.yml -v prometheus-data:/prometheus -p 9090:9090  prom/prometheus
+        run: docker container run --name prometheus -v ${{ github.workspace }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro -v prometheus-data:/prometheus -p 9090:9090  prom/prometheus
 
       - name: Run Grafana container (background)
         run: docker container run -v grafana-data -p 3000:3000 --name grafana --network network grafana/grafana
